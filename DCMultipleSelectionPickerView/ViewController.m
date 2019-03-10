@@ -29,9 +29,10 @@
     [self.view addSubview:button];
     
     DCMultipleChoicePickerView *pickerView = [[DCMultipleChoicePickerView alloc]initWithType:DCPickerViewTypeNoNavgationBar];
+    pickerView.relation = @"请选择联系人关系";
     pickerView.dataArr = @[@"南",@"北",@"东",@"西",@"中",@"上",@"下",@"左",@"右"];
-    pickerView.finishBlock = ^(NSArray * _Nonnull selectedArr) {
-        NSLog(@"%@",[selectedArr componentsJoinedByString:@","]);
+    pickerView.finishBlock = ^(NSString * _Nonnull selectedItem) {
+        NSLog(@"%@",selectedItem);
     };
     [self.view addSubview:pickerView];
     _pickerView = pickerView;

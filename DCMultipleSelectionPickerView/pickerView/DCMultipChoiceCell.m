@@ -9,15 +9,13 @@
 #import "DCMultipChoiceCell.h"
 #define KScreenWidth ([[UIScreen mainScreen] bounds].size.width)
 #define KScreenHeight ([[UIScreen mainScreen] bounds].size.height)
-
+//#pragma mark - 16进制色值转RGB
+#define UIColorFromRGBHex(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 @interface DCMultipChoiceCell ()
 @property (nonatomic, strong) UILabel *titleLabel;
-@property (nonatomic, strong) UIButton *selectedButton;
-
+@property (nonatomic, strong) UIView  *lineView;
 @property (nonatomic, strong) UIColor *selectedTextColor;
 @property (nonatomic, strong) UIColor *textColor;
-@property (nonatomic, strong) UIImage *selectedImage;
-@property (nonatomic, strong) UIImage *image;
 
 @end
 
@@ -34,14 +32,10 @@
 {
     self.titleLabel.text = text;
     self.titleLabel.textColor = [UIColor darkGrayColor];
-    [self.selectedButton setSelected:NO];
-    
-    
 }
 -(void)setIsSelected:(BOOL)isSelected
 {
     _isSelected = isSelected;
-    [self.selectedButton setSelected:isSelected];
     if(isSelected)
     {
         self.titleLabel.textColor = _selectedTextColor;
@@ -57,21 +51,14 @@
     
     self.titleLabel.textColor = _textColor;
 }
--(void)setSelectedImage:(UIImage *)selectedImage image:(UIImage *)image
-{
-    [self.selectedButton setImage:selectedImage forState:UIControlStateNormal];
-    [self.selectedButton setImage:image forState:UIControlStateSelected];
-}
 #pragma mark - private
 -(void)ld_setupUI
 {
     UIView *contentView = self.contentView;
-    
     [contentView addSubview:self.titleLabel];
-    [contentView addSubview:self.selectedButton];
-    
-    self.titleLabel.frame = CGRectMake(0, 0, KScreenWidth, 55);
-    self.selectedButton.frame = CGRectMake(KScreenWidth - 42, 21, 12, 12);
+    [contentView addSubview:self.lineView];
+    self.titleLabel.frame = CGRectMake(0, 0, KScreenWidth, 54);
+    self.lineView.frame = CGRectMake(0, 54, KScreenWidth, 1);
 }
 #pragma mark - settert//getter
 -(UILabel *)titleLabel
@@ -85,15 +72,12 @@
     }
     return _titleLabel;
 }
--(UIButton *)selectedButton
+-(UIView *)lineView
 {
-    if(_selectedButton == nil)
-    {
-        _selectedButton = [[UIButton alloc]init];
-        [_selectedButton setImage:[UIImage imageNamed:@"icon_screen_retangle"] forState:UIControlStateNormal];
-        [_selectedButton setImage:[UIImage imageNamed:@"icon_screen_retangleSelect"] forState:UIControlStateSelected];
+    if (_lineView == nil) {
+        _lineView = [[UIView alloc] init];
+        _lineView.backgroundColor = UIColorFromRGBHex(0x999999);
     }
-    return _selectedButton;
+    return _lineView;
 }
-
 @end

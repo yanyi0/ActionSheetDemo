@@ -14,12 +14,13 @@ typedef NS_ENUM(NSUInteger, DCPickerViewType)
     DCPickerViewTypeNoNavgationBar,
     DCPickerViewTypeNavgationBar,
 };
-typedef void(^selectedFinishBlock)(NSArray *selectedArr);
+typedef void(^selectedFinishBlock)(NSString *selectedItem);
 
 @interface DCMultipleChoicePickerView : UIView
-
+@property(nonatomic,copy)NSString *relation;
 @property (nonatomic, strong) NSArray<NSString *> *dataArr;
 @property(nonatomic,copy)selectedFinishBlock finishBlock;
+@property(nonatomic,copy)NSString *selectedItem;
 -(instancetype)initWithType:(DCPickerViewType)type;
 /** 设置取消按钮的文字颜色 */
 -(void)setCancelTextColor:(UIColor *)color;
@@ -27,8 +28,6 @@ typedef void(^selectedFinishBlock)(NSArray *selectedArr);
 -(void)setConfirmTextColor:(UIColor *)color;
 /** 设置选项的文字颜色和选中后的文字颜色 */
 -(void)setSelectedTextColor:(UIColor *)selectedTextColor textColor:(UIColor *)textColor;
-/** 设置选项右边的图片 */
--(void)setSelectedImage:(UIImage *)selectedImage image:(UIImage *)image;
 -(void)showAnimation;
 
 @end

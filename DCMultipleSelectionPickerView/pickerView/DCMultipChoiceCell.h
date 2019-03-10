@@ -14,8 +14,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic,assign)BOOL isSelected;
 -(void)setTitle:(NSString *)text;
 -(void)setSelectedTextColor:(UIColor *)selectedTextColor textColor:(UIColor *)textColor;
--(void)setSelectedImage:(UIImage *)selectedImage image:(UIImage *)image;
-
 @end
 
 NS_ASSUME_NONNULL_END

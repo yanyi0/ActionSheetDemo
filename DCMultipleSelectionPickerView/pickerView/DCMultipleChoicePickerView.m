@@ -35,13 +35,12 @@
 @property (nonatomic, strong) UIView *bottomView;
 @property (nonatomic, strong) UIButton *cancleButton;
 @property (nonatomic, strong) UIButton *confirmButton;
+@property (nonatomic, strong) UILabel *titleLabel;
 @property (nonatomic, strong) UITableView *tableView;
 
 @property (nonatomic, strong) UIColor *selectedTextColor;
 @property (nonatomic, strong) UIColor *textColor;
-@property (nonatomic, strong) UIImage *selectedImage;
-@property (nonatomic, strong) UIImage *image;
-
+@property (nonatomic, strong) UIView *backgroundView;
 
 @property (nonatomic, strong) NSMutableArray *selectedDataArr;
 /** 选中s数据的缓存 */
@@ -74,8 +73,6 @@ static NSString *const cellKey = @"cellKey";
     {
         _selectedTextColor = kSelectedColor;
         _textColor = [UIColor darkGrayColor];
-        _image = [UIImage imageNamed:@"icon_screen_retangle"];
-        _selectedImage = [UIImage imageNamed:@"icon_screen_retangleSelect"];
         [self p_DCSetMainView];
         self.hidden = YES;
     }
@@ -84,24 +81,14 @@ static NSString *const cellKey = @"cellKey";
 #pragma mark - 公共方法
 -(void)showAnimation
 {
+    self.userInteractionEnabled = YES;
+    UITapGestureRecognizer *pan = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(dismissContactView:)];
+    //防止cell上面点击事件失效
+    pan.cancelsTouchesInView = NO;
+    [self addGestureRecognizer:pan];
+    
     self.hidden = NO;
-    //改变cell的状态
-    for(NSInteger i=0, count=self.dataArr.count ;i<count;i++)
-    {
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:i inSection:0];
-        DCMultipChoiceCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-        if([self.CacheSelectedDataArr containsObject:indexPath])
-        {
-            cell.isSelected = YES;
-        }else
-        {
-            cell.isSelected = NO;
-        }
-    }
-    for (NSIndexPath *indexPath in self.CacheSelectedDataArr) {
-        DCMultipChoiceCell *cell = [self.tableView cellForRowAtIndexPath:indexPath];
-        cell.isSelected = YES;
-    }
+    self.titleLabel.text = self.relation;
     [UIView animateWithDuration:0.5 animations:^{
         CGFloat height = self.bottomView.frame.size.height;
         self.bottomView.transform = CGAffineTransformMakeTranslation(0, -height);
@@ -121,21 +108,33 @@ static NSString *const cellKey = @"cellKey";
     _textColor = textColor;
     [self.tableView reloadData];
 }
--(void)setSelectedImage:(UIImage *)selectedImage image:(UIImage *)image
-{
-    
-}
 #pragma mark - 私有方法
 -(void)p_DCSetMainView
 {
+//    self.backgroundView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, KScreenWidth, KScreenHeight)];
+//    self.backgroundView.backgroundColor = RGBA(51, 51, 51, 0.3);
+//    [self addSubview:self.backgroundView];
+    
     self.backgroundColor = RGBA(51, 51, 51, 0.3);
     [self addSubview:self.bottomView];
+    [self.bottomView addSubview:self.titleLabel];
     [self.bottomView addSubview:self.confirmButton];
     [self.bottomView addSubview:self.cancleButton];
     [self.bottomView addSubview:self.tableView];
     UIView *lineView = [[UIView alloc]initWithFrame:CGRectMake(0, 55, KScreenWidth, 0.5)];
     lineView.backgroundColor = [UIColor lightGrayColor];
     [self.bottomView addSubview:lineView];
+}
+
+-(void)dismissContactView:(UITapGestureRecognizer *)sender
+{
+    if (sender.state == UIGestureRecognizerStateEnded){
+        CGPoint location = [sender locationInView:nil];
+        if (![self.bottomView pointInside:[self.bottomView convertPoint:location fromView:self] withEvent:nil]){
+            [self removeGestureRecognizer:sender];
+            [self p_DCHidenAnimation];
+        }
+    }
 }
 -(void)p_DCHidenAnimation
 {
@@ -160,23 +159,13 @@ static NSString *const cellKey = @"cellKey";
 #pragma mark - target
 -(void)cancleButtonClick:(UIButton *)button
 {
-    //如果取消，把上次确定的时候缓存的数据赋值过来
-    self.selectedDataArr = [NSMutableArray arrayWithArray:self.CacheSelectedDataArr];
     [self p_DCHidenAnimation];
 }
 -(void)confrimButtonClick:(UIButton *)button
 {
-    self.CacheSelectedDataArr = [self.selectedDataArr mutableCopy];
-    
-    NSMutableArray *selectedStringArr = [NSMutableArray array];
-    for (NSIndexPath *indexPath in self.selectedDataArr) {
-        NSString *string = self.dataArr[indexPath.row];
-        [selectedStringArr addObject:string];
-    }
-    
     if(self.finishBlock)
     {
-        self.finishBlock(selectedStringArr);
+        self.finishBlock(self.selectedItem);
     }
     [self p_DCHidenAnimation];
 }
@@ -185,13 +174,13 @@ static NSString *const cellKey = @"cellKey";
 {
     DCMultipChoiceCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     cell.isSelected = !cell.isSelected;
-    if(cell.isSelected)
+    self.selectedItem = self.dataArr[indexPath.row];
+    if(self.finishBlock)
     {
-        [self.selectedDataArr addObject:indexPath];
-    }else
-    {
-        [self.selectedDataArr removeObject:indexPath];
+        self.finishBlock(self.selectedItem);
+        cell.isSelected = !cell.isSelected;
     }
+    [self p_DCHidenAnimation];
 }
 #pragma mark - 数据源方法
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -215,6 +204,17 @@ static NSString *const cellKey = @"cellKey";
         _bottomView.backgroundColor = [UIColor whiteColor];
     }
     return _bottomView;
+}
+-(UILabel *)titleLabel
+{
+    if (_titleLabel == nil)
+    {
+        _titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(64, 0, KScreenWidth - 64 - 64, 55)];
+        _titleLabel.font = [UIFont fontWithName:@"PingFangSC-Semibold" size:19];
+        _titleLabel.textColor = RGBA(51, 51, 51, 1);
+        _titleLabel.textAlignment = NSTextAlignmentCenter;
+    }
+    return _titleLabel;
 }
 -(UIButton *)cancleButton
 {
@@ -255,21 +255,4 @@ static NSString *const cellKey = @"cellKey";
     }
     return _tableView;
 }
--(NSMutableArray *)selectedDataArr
-{
-    if(_selectedDataArr == nil)
-    {
-        _selectedDataArr = [NSMutableArray array];
-    }
-    return _selectedDataArr;
-}
--(NSMutableArray *)CacheSelectedDataArr
-{
-    if(_CacheSelectedDataArr == nil)
-    {
-        _CacheSelectedDataArr = [NSMutableArray array];
-    }
-    return _CacheSelectedDataArr;
-}
-
 @end
